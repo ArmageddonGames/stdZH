@@ -1,9 +1,8 @@
-//Docs for 2.50.2
-//Rev. 0.6.9
-//11th July, 2016
+//Docs for 2.53.0
+//Rev. 0.7.3.4; 20th January, 2018
 
 Search for !#! to find areas that require completion. 
-?REFFFC? What is this?
+
 
 //===================================================================================
 //                 --- ZScript built-in functions and variables ---
@@ -32,7 +31,7 @@ Search for !#! to find areas that require completion.
 * 	function / command. Full (public) ZASM documentation is, sadly incomplete.
 *
 * 	Note: Functions and variables other than global functions are properties
-* 	of **objects**. Objects are divided into NAMESPACEs and CLASSes, and the 
+* 	of **objects**. Objects are divided into TYPED POINTER CLASSes, and the 
 * 	the syntax for using them is:
 *
 * 	[object name]->[property]
@@ -97,29 +96,38 @@ ZScript always compiles down to GOTO, GOTOR, and GOTOTRUE instructions.
 The other FLAG-typed GOTO instruction types are valid only in ZASM, and serve no useful purpose.
 GOTOLESS, GOTOMORE, and GOTOFALSE are effectively deprecated. 
 
-//=======================================================
+//================================================== =====
 //--- Instruction Processing Order and General Timing ---
-=========================================================
+================================================== =======
 
-1.     Instructions in Global script Init (if starting a new game)
-2.     Instructions in Global Script OnContinue (is resuming a game)
-3.     Instructions immediately inside the run() function of a global active script. 
-4.     Instructions in the global active script's infinite loop prior to Waitdraw, 
-       if (5) does not exist, or on the first frame of the game. 
-5.     Instructions from an ffc script positioned after (an illegal) 
-       Waitdraw() instruction in that script from the previous frame. 
-	     Note: Requires being on at least the second frame of a game session.
-6.     Instructions in the global active script prior to Waitdraw(). 
-7.     Instructions in an ffc script, other than (5), excluding draw commands. 
-8.     Screen Scrolling (2.50.2, or later)
-9.     Instructions from item scripts. 
-10.    Waitdraw() in a global active script. 
-11.    Engine writing to Link->Dir and Link->Tile.
-12.    Instructions in the global active script, called after Waitdraw()
-12(b). Screen Scrolling ( 2.50.0, and 2.50.1 )
-13.    Drawing from FFCs
-14.    Instructions in an OnExit script, if the game is exiting. 
-15.    Return to (5).
+1. 	Instructions in Global script Init (if starting a new game)
+2. 	Instructions in Global Script OnContinue (is resuming a game)
+3. 	Instructions from FFCs that run on screen init, excluding draw instructions.
+		Note: Instructions are handled on a per-ffc basis, in ID order; so a script on ffc ID 1 runs,
+		then a script on ffc ID 2, up to ffc ID 32. If an ffc has no script, it is skipped.
+4. 	Instructions immediately inside the run() function of a global active script, if the game has just loaded.
+5. 	Instructions in the global active script's infinite loop prior to Waitdraw,
+6. 	Instructions from an ffc script positioned after (an illegal)
+	Waitdraw() instruction in that script from the previous frame.
+		Note: Requires being on at least the second frame of a game session.
+7. 	Screen bitmap drawing.
+8. 	Enqueued Script Drawing from the global active script, (and from ffcs on the previous frame).
+9. 	Drawing Instructions in the global active script prior to Waitdraw().
+10. 	Instructions in an ffc script, excluding draw commands.
+		Note: Instructions are handled on a per-ffc basis, in ID order; so a script on ffc ID 1 runs,
+		then a script on ffc ID 2, up to ffc ID 32. If an ffc has no script, it is skipped.
+11. 	Screen Scrolling (2.50.2, or later)
+12. 	Waitdraw() in a global active script.
+13. 	Engine writing to Link->Dir and Link->Tile.
+14. 	FFCs enqueue draws for the next frame.
+		Note: Instructions are handled on a per-ffc basis, in ID order; so a script on ffc ID 1 runs,
+		then a script on ffc ID 2, up to ffc ID 32. If an ffc has no script, it is skipped.
+15. 	Instructions from item action scripts.
+16. 	Instructions from item collect scripts.
+17. 	Instructions in the global active script, called after Waitdraw()
+17(b). 	Screen Scrolling ( 2.50.0, and 2.50.1 )]
+18. 	Instructions in an OnExit script, if the game is exiting.
+19. 	Return to (3).
 
 
 //=================
@@ -407,13 +415,8 @@ void ClearTile(int tileref);			ZASM Instruction:
 
 //Overlay Tile
 
-//! Is there a ZScript equivalent of this?!
-//! This instruction seems to be ***ZASM-specific***.
-//! Game->overlayTile() and Screen->OverlayTile() both return an error (no such pointer).
-//! Add this to the bytecode in a future build. 
-//! As far as I can tell, this should work from ZASM, but it was never added to the ZScript side. (11/July/2016: ZRPG)
-
-void OverlayTile() ?
+//! ZASM-only for this version of ZC. 
+void OverlayTile()
 
     OVERLAYTILEVV
     OVERLAYTILEVR
@@ -642,9 +645,6 @@ float RadianCos(float rad);
 
 /************************************************************************************************************/
 
-//!Sources: OMultImmediate, OTanRegister
-//Is there a direct ZASM instruction equivalent, or does this function run as a routine?
-
 float RadianTan(float rad);
 /**
 * Returns the trigonometric tangent of the parameter, which is
@@ -795,7 +795,7 @@ float Sqrt(float val);			ZASM Instruction:
 //--- Game Functions and Variables ---
 //====================================
 
-										namespace Game
+										class Game
 
 	
 
@@ -1079,7 +1079,7 @@ float Sqrt(float val);			ZASM Instruction:
 
 /************************************************************************************************************/
 
-	int LItems			ZASM Instruction: 
+	byte LItems			ZASM Instruction: 
 					GAMELITEMSD
 	/**
 	* The exploration items (map, compass, boss key etc.) of dungeon level i
@@ -1087,15 +1087,17 @@ float Sqrt(float val);			ZASM Instruction:
 	* the index used to access this array. Each element of this
 	* array consists of flags OR'd (|) together; use the LI_ constants in
 	* std.zh to set or compare these values.
+	* The valid range of values for this variable is 0 to 255.
 	*/ Example Use: !#!
 
 /************************************************************************************************************/
 
-	int LKeys[];			ZASM Instruction: 
+	byte LKeys[];			ZASM Instruction: 
 					GAMELKEYSD
 	/**
 	* The number of level keys of level i currently under the possession of
 	* the player, where i is the index used to access this array.
+	* The valid range of values for this variable is 0 to 255.
 	*/ Example Use: !#!
 
 /************************************************************************************************************/
@@ -1570,7 +1572,7 @@ float Sqrt(float val);			ZASM Instruction:
 //--- Screen Functions and Variables ---
 //======================================
 
-										namespace Screen
+										class Screen
 
 float D[];				ZASM Instruction: 
 					SD
@@ -2662,6 +2664,11 @@ void DrawString( 	int layer, int x, int y,
 	//! Thus, legal sizes are 1, 2, 4, 8, and 16.
 	//! This applies to *all* the pseudo-3d and 3-D drawing functions. 
 	
+	//! To draw one of the rendering shapes with a solid colour, set the args as follows:
+	//! CSet = colour to draw
+	//! Texture = -1
+	//! Render Mode = PT_FLAT
+	
 	void Quad	( int layer, 
 			int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4,
 			int w, int h, int cset, int flip, int texture, int render_mode);
@@ -2806,8 +2813,25 @@ void DrawString( 	int layer, int x, int y,
 					BITMAPR
 	
 	/**
-	* Draws a source rect from off-screen Bitmap with id of bitmap_id onto
-	* an area of the screen described by dest rect at the given layer.
+	* The process of copying one bitmap to another, or to the screen, is called a 'BLIT', or 'BLITTING'.
+	* This instruction BLITs a source rect from off-screen (memory) Bitmap with id of bitmap_id onto
+	* an area of the screen (or another bitmap) using a set of rectangular coordinates, at the given layer.
+	*
+	* Use source_x + source_w to define the X axis and source_y + source_h to define the
+	* Y axis of the bitmap area that you wish to draw; then specify the target area using
+	* dest_x + dest_w and dest_y + dest_h. 
+	* 
+	* If source_w and dest_w are not equal, or source_h and dest_h are not equal, the
+	* bitmap will be scaled.
+	*
+	* The valid range of coordinates on a bitmap is 0 tp 511, on each axis. Bitmaps are
+	* 512 pixels square, in size. 
+	*
+	* Rotation defines if the bitmap will be rotated. if so, it will be rotated on its centre 
+	* by a number of DEGREES equal to the value of rotation.
+	*
+	* If you wish to mask out translucent areas of the bitmap when blitting it, set mast true. 
+	*
 	*
 	*	(!) Note* Script drawing functions are enqueued and executed in a frame-by-frame basis 
 	*	based on the order of which layer they need to be drawn to. Drawing to or from
@@ -2921,12 +2945,17 @@ int Script;			ZASM Instruction:
 				
 /**
 * The number of the script assigned to the FFC. This will be automatically
-* set to 0 when the FFC's script halts. A script cannot change the script of
-* the FFC running it; in other words, f->Script is read-only when f==this.
+* set to 0 when the FFC's script exits. A script cannot change the script of
+* the FFC running it; in other words, you cannot write to this->Script. 
+*
 * When an FFC's script is changed, its arguments, Misc[], and registers will
 * all be set to 0, and it will start running from the beginning. Set
 * ffc->InitD[] after setting the script before the script starts running
 * to pass arguments to it.
+* 
+* Setting ->Data to 0 DOES NOT clear ->Script, and it is not treated as exiting.
+* To do this, call Quit(), or 
+* otherwise exit the scope of the run() function.
 *
 */ Example Use:
 
@@ -3158,7 +3187,7 @@ Address Argument		ZASM Instruction
 //--- Link Functions and Variables ---
 //====================================
 
-											namespace Link
+											class Link
 
 //Unimplemented?
 Invincibility: LINKINVINC<>
@@ -3664,10 +3693,6 @@ int HitXOffset;				ZASM Instruction:
 /**
 * The X offset of Link's hitbox, or collision rectangle.
 * Setting it to positive or negative values will move Link's hitbox left or right.
-* Writing to this is ignored unless Extend is set to values >=3.
-* This is not usable, as Link->Extend cannot be set.
-* While setting it is not syntactically incorrect, it does nothing.
-* You can read a value that you assign to this (e.g. for custom collision functions).
 * This value is not preserved through sessions: Loading a saved game will reset it to the default. 
 *
 */ Example Use: !#!
@@ -3680,10 +3705,6 @@ int HitYOffset;				ZASM Instruction:
 /**
 * The Y offset of Link's hitbox, or collision rectangle.
 * Setting it to positive or negative values will move Link's hitbox up or down.
-* Writing to this is ignored unless Extend is set to values >=3.
-* This is not usable, as Link->Extend cannot be set.
-* While setting it is not syntactically incorrect, it does nothing.
-* You can read a value that you assign to this (e.g. for custom collision functions).
 * This value is not preserved through sessions: Loading a saved game will reset it to the default. 
 *
 */ Example Use: !#!
@@ -3696,10 +3717,6 @@ int DrawXOffset;			ZASM Instruction:
 /**
 * The X offset of Link's sprite.
 * Setting it to positive or negative values will move the sprite's tiles left or right relative to its position.
-* Writing to this is ignored unless Extend is set to values >=3.
-* This is not usable, as Link->Extend cannot be set.
-* While setting it is not syntactically incorrect, it does nothing.
-* You can read a value that you assign to this.
 * This value is not preserved through sessions: Loading a saved game will reset it to the default. 
 *
 */ Example Use: !#!
@@ -3712,10 +3729,6 @@ int DrawYOffset;			ZASM Instruction:
 /**
 * The Y offset of Link's sprite.
 * Setting it to positive or negative values will move the sprite's tiles up or down relative to its position.
-* Writing to this is ignored unless Extend is set to values >=3.
-* This is not usable, as Link->Extend cannot be set.
-* While setting it is not syntactically incorrect, it does nothing.
-* You can read a value that you assign to this.
 * This value is not preserved through sessions: Loading a saved game will reset it to the default. 
 *
 */ Example Use: !#!
@@ -3727,11 +3740,7 @@ int DrawZOffset;			ZASM Instruction:
 				
 /**
 * The Z offset of Link's sprite.
-* Writing to this is ignored unless Extend is set to values >=3.
 * The values of DrawZOffset and HitZHeight are linked. Setting one, also sets the other. 
-* This is not usable, as Link->Extend cannot be set.
-* While setting it is not syntactically incorrect, it does nothing.
-* You can read a value that you assign to this.
 * This value is not preserved through sessions: Loading a saved game will reset it to the default. 
 *
 */ Example Use: !#!
@@ -4779,6 +4788,8 @@ SelectBWeapon(int dir);			ZASM Instruction:
 					ITEMFRAME
 	/**
 	* The tile that is this item's current animation frame.
+	
+	//! This is not returning the correct value. 
 	*
 	*/ Example Use: !#!
 	
@@ -5833,7 +5844,7 @@ T28: That pointer type does not have a function 'foo'.
 You tried to use the dereference operator (->) to call a function that does not exist for the pointer type being dereferenced. 
 Check the list of member variables and functions and verify you have not mistyped the function you are trying to call.
 
-This generally occurs when calling internal functions, using the incorrect class, or namespace, such as:
+This generally occurs when calling internal functions, using the incorrect class, or pointer, such as:
 
 Game->Rectangle() instead of Screen->Rectangle()
 
