@@ -5,6 +5,9 @@
 //float stdArray[4096]; //This should be called GlobalRAM[]
 int std_zh___GlobalRAM[4096];
 
+const float STD_VERSION = 1.6000;
+float __stdzh_getVersion() { return STD_VERSION; }
+
 //! Because this is the first global array that will likely be declared, called from the 'import "std.zh"' 
 //! directive in scripts, or from the buffer; as the import directive for std.zh is usually the very first
 //! instruction in any compilation attempt; this array will automatically have the highest numbered pointer.
@@ -19,9 +22,7 @@ int std_zh___GlobalRAM[4096];
 //! It's essentially a catch-all for questmakers, as a way to later expand a quest, without breaking player
 //! save files, or requiring them to start from scratch, to play the update. 
 
-const float STD_VERSION = 1.5000;
 
-float __stdzh_getVersion() { return STD_VERSION; }
 
 //Data Handling Functions
 

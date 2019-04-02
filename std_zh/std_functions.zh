@@ -1,5 +1,5 @@
 //std_functions.zh
-//1st April, 2019 for ZC 2.53.0
+//1st April, 2019 for ZC 2.55.0 Alpha 16
 
 //A
 
@@ -19,33 +19,41 @@ bool Above(lweapon n){ return Link->Y < n->Y; }
 void AimEWeapon(eweapon e, int aimtype)
 {
 	int angle = RadianAngle(e->X, e->Y, Link->X, Link->Y);
-	if(aimtype == AT_4DIR)
+	switch(aimtype)
 	{
-		e->Dir = RadianAngleDir4(angle);
-	}
-	else if(aimtype == AT_8DIR)
-	{
-		e->Dir = RadianAngleDir8(angle);
-	}
-	else if(aimtype == AT_ANGULAR)
-	{
-		e->Angular = true;
-		e->Angle = angle;
-		e->Dir = RadianAngleDir8(angle);
-	}
-	else if(aimtype == AT_RAND4DIR)
-	{
-		e->Dir = Rand(4);
-	}
-	else if(aimtype == AT_RAND8DIR)
-	{
-		e->Dir = Rand(8);
-	}
-	else if(aimtype == AT_RANDANGULAR)
-	{
-		e->Angular = true;
-		e->Angle = Randf(PI2);
-		e->Dir = RadianAngleDir8(e->Angle);
+		case AT_4DIR:
+		{
+			e->Dir = RadianAngleDir4(angle);
+			break;
+		}
+		case AT_8DIR:
+		{
+			e->Dir = RadianAngleDir8(angle);
+			break;
+		}
+		case AT_ANGULAR:
+		{
+			e->Angular = true;
+			e->Angle = angle;
+			e->Dir = RadianAngleDir8(angle);
+			break;
+		}
+		case AT_RAND4DIR:
+		{
+			e->Dir = Rand(4);
+			break;
+		}
+		case AT_RAND8DIR:
+		{
+			e->Dir = Rand(8);
+		}
+		case AT_RANDANGULAR:
+		{
+			e->Angular = true;
+			e->Angle = Randf(PI2);
+			e->Dir = RadianAngleDir8(e->Angle);
+			break;
+		}
 	}
 }
 
@@ -53,38 +61,57 @@ void AimEWeapon(eweapon e, int aimtype)
 void AimLWeapon(lweapon l, npc n, int aimtype)
 {
 	int angle = RadianAngle(l->X, l->Y, n->X, n->Y);
-	if(aimtype == AT_4DIR)
+	switch(aimtype)
 	{
-		l->Dir = RadianAngleDir4(angle);
+		case AT_4DIR:
+		{
+			l->Dir = RadianAngleDir4(angle);
+			break;
+		}
+		case AT_8DIR:
+		{
+			l->Dir = RadianAngleDir8(angle);
+			break;
+		}
+		case AT_ANGULAR:
+		{
+			l->Angular = true;
+			l->Angle = angle;
+			l->Dir = RadianAngleDir8(angle);
+			break;
+		}
+		default:
+		{
+			AimLWeapon(l, aimtype); break;
+		}
 	}
-	else if(aimtype == AT_8DIR)
-	{
-		l->Dir = RadianAngleDir8(angle);
-	}
-	else if(aimtype == AT_ANGULAR)
-	{
-		l->Angular = true;
-		l->Angle = angle;
-		l->Dir = RadianAngleDir8(angle);
-	}
-	else
-		AimLWeapon(l, aimtype);
 }
+
 void AimLWeapon(lweapon l, int aimtype)
 {
-	if(aimtype == AT_RAND4DIR)
+	switch(aimtype)
 	{
-		l->Dir = Rand(4);
-	}
-	else if(aimtype == AT_RAND8DIR)
-	{
-		l->Dir = Rand(8);
-	}
-	else if(aimtype == AT_RANDANGULAR)
-	{
-		l->Angular = true;
-		l->Angle = Randf(PI2);
-		l->Dir = RadianAngleDir8(l->Angle);
+		case AT_RAND4DIR:
+		{
+			l->Dir = Rand(4);
+			break;
+		}
+		case AT_RAND8DIR:
+		{
+			l->Dir = Rand(8);
+			break;
+		}
+		case AT_RANDANGULAR:
+		{
+			l->Angular = true;
+			l->Angle = Randf(PI2);
+			l->Dir = RadianAngleDir8(l->Angle);
+			break;
+		}
+		default: 
+		{
+			LogPrint("Invalid aimtype %d provided to AimLWeapon(l,aimtype) \n",aimtype); break;
+		}
 	}
 }
 
@@ -168,16 +195,20 @@ bool Below(lweapon n){ return Link->Y > n->Y; }
 //checking, be it Link, FFCs, or enemies.
 //Note - You should use full_tile=true if you don't want the upper eight pixels to overlap
 //solid combos as per LOZ1 behavior.
-bool CanWalk(int x, int y, int dir, int step, bool full_tile) {
-    int c=8;
-    int xx = x+15;
-    int yy = y+15;
-    if(full_tile) c=0;
-    if(dir==0) return !(y-step<0||Screen->isSolid(x,y+c-step)||Screen->isSolid(x+8,y+c-step)||Screen->isSolid(xx,y+c-step));
-    else if(dir==1) return !(yy+step>=176||Screen->isSolid(x,yy+step)||Screen->isSolid(x+8,yy+step)||Screen->isSolid(xx,yy+step));
-    else if(dir==2) return !(x-step<0||Screen->isSolid(x-step,y+c)||Screen->isSolid(x-step,y+c+7)||Screen->isSolid(x-step,yy));
-    else if(dir==3) return !(xx+step>=256||Screen->isSolid(xx+step,y+c)||Screen->isSolid(xx+step,y+c+7)||Screen->isSolid(xx+step,yy));
-    return false; //invalid direction
+bool CanWalk(int x, int y, int dir, int step, bool full_tile) 
+{
+	int c=8;
+	int xx = x+15;
+	int yy = y+15;
+	if(full_tile) c=0;
+	switch(dir)
+	{
+		case DIR_UP: return !(y-step<0||Screen->isSolid(x,y+c-step)||Screen->isSolid(x+8,y+c-step)||Screen->isSolid(xx,y+c-step));
+		case DIR_DOWN: return !(yy+step>=176||Screen->isSolid(x,yy+step)||Screen->isSolid(x+8,yy+step)||Screen->isSolid(xx,yy+step));
+		case DIR_LEFT: return !(x-step<0||Screen->isSolid(x-step,y+c)||Screen->isSolid(x-step,y+c+7)||Screen->isSolid(x-step,yy));
+		case DIR_RIGHT: return !(xx+step>=256||Screen->isSolid(xx+step,y+c)||Screen->isSolid(xx+step,y+c+7)||Screen->isSolid(xx+step,yy));
+		default: { LogPrint("Invalid direction %d passed to CanWalk(x,y,dir,step,bool) \n",step); return false; } //invalid direction
+	}
 }
 
 //Raises x to the nearest integer
@@ -206,46 +237,57 @@ int CenterY(item it) { return it->Y+8*it->TileHeight; }
 // Chooses one of the options randomly and fairly.
 float Choose(float a, float b) 
 {
-	if (Rand(2)==0) return a;
-	else return b;
+	return ( (!Rand(2)) ? a : b );
 }
 
 float Choose(float a, float b, float c) 
 {
 	int r = Rand(3);
-	if (r==0) return a;
-	else if (r==1) return b;
-	else return c;
+	switch(r)
+	{
+		case 0: return a;
+		case 1: return b;
+		default: return c;
+	}
 }
 
 float Choose(float a, float b, float c, float d) 
 {
 	int r = Rand(4);
-	if (r==0) return a;
-	else if (r==1) return b;
-	else if (r==2) return c;
-	else return d;
+	switch(r)
+	{
+		case 0: return a;
+		case 1: return b;
+		case 2: return c;
+		default: return d;
+	}
 }
 
 float Choose(float a, float b, float c, float d, float e) 
 {
 	int r = Rand(5);
-	if (r==0) return a;
-	else if (r==1) return b;
-	else if (r==2) return c;
-	else if (r==3) return d;
-	else return e;
+	switch(r)
+	{
+		case 0: return a;
+		case 1: return b;
+		case 2: return c;
+		case 3: return d;
+		default: return e;
+	}
 }
 
 float Choose(float a, float b, float c, float d, float e, float f) 
 {
 	int r = Rand(6);
-	if (r==0) return a;
-	else if (r==1) return b;
-	else if (r==2) return c;
-	else if (r==3) return d;
-	else if (r==4) return e;
-	else return f;
+	switch(r)
+	{
+		case 0: return a;
+		case 1: return b;
+		case 2: return c;
+		case 3: return d;
+		case 4: return e;
+		default: return f;
+	}
 }
 
 //Returns true if the two circles c1 and c2 overlap.
@@ -567,43 +609,35 @@ int ComboY(int loc)
 //Returns a if cond is true, else b. Overloaded.
 float Cond(bool cond, float a, float b) 
 {
-	if (cond) return a;
-	else return b;
+	return ( cond ? a : b ); 
 }
 bool Cond(bool cond, bool a, bool b) 
 {
-	if (cond) return a;
-	else return b;
+	return ( cond ? a : b ); 
 }
 npc Cond(bool cond, npc a, npc b) 
 {
-	if (cond) return a;
-	else return b;
+	return ( cond ? a : b ); 
 }
 item Cond(bool cond, item a, item b) 
 {
-	if (cond) return a;
-	else return b;
+	return ( cond ? a : b ); 
 }
 lweapon Cond(bool cond, lweapon a, lweapon b) 
 {
-	if (cond) return a;
-	else return b;
+	return ( cond ? a : b ); 
 }
 eweapon Cond(bool cond, eweapon a, eweapon b) 
 {
-	if (cond) return a;
-	else return b;
+	return ( cond ? a : b ); 
 }
 ffc Cond(bool cond, ffc a, ffc b) 
 {
-	if (cond) return a;
-	else return b;
+	return ( cond ? a : b ); 
 }
 itemdata Cond(bool cond, itemdata a, itemdata b) 
 {
-	if (cond) return a;
-	else return b;
+	return ( cond ? a : b ); 
 }
 
 bool ConsumeKey(int level)
@@ -615,7 +649,7 @@ bool ConsumeKey(int level)
 	}
 	else if(Game->Counter[CR_KEYS]>0)
 	{
-		--Game->Counter[CR_KEYS];
+		Game->Counter[CR_KEYS]--;
 		return true;
 	}
 	else
@@ -747,8 +781,7 @@ void DCounterReduce(int counter, int amount)
 //Returns if Link has defeated the dungeon boss for a given level.
 int DefeatedLevelBoss(int level)
 {
-        if(Game->LItems[level]&LI_BOSS) return 1;
-	return 0;
+        return ((Game->LItems[level]&LI_BOSS) ? 1 : 0 );
 }
 
 //Converts 'd' in degrees to radians
@@ -762,51 +795,63 @@ float DegtoRad(float d)
 int Dir4Angle(int dir)
 {
 	//dir &=7;
-	if (dir==DIR_UP) return DEG_DIR_UP;
-	if (dir==DIR_DOWN) return DEG_DIR_DOWN;
-	if (dir==DIR_LEFT) return DEG_DIR_LEFT;
-	if (dir==DIR_RIGHT) return DEG_DIR_RIGHT;
-	return -1;
+	switch(dir)
+	{
+		case DIR_UP: return DEG_DIR_UP;
+		case DIR_DOWN: return DEG_DIR_DOWN;
+		case DIR_LEFT: return DEG_DIR_LEFT;
+		case DIR_RIGHT: return DEG_DIR_RIGHT;
+		default: { LogPrint("Invalid direction %d passed to Dir4Angle \n",dir); return -1; }
+	}
 }
 
 //Returns angle of the given direction.
 int DirAngle(int dir)
 {
 	//dir &=7; //I do not recall why this is here. Removing it as it seems extraneous. -Z
-	if (dir==DIR_UP) return DEG_DIR_UP;
-	if (dir==DIR_DOWN) return DEG_DIR_DOWN;
-	if (dir==DIR_LEFT) return DEG_DIR_LEFT;
-	if (dir==DIR_RIGHT) return DEG_DIR_RIGHT;
-	if (dir==DIR_LEFTUP) return DEG_DIR_LEFTUP;
-	if (dir==DIR_RIGHTUP) return DEG_DIR_RIGHTUP;
-	if (dir==DIR_LEFTDOWN) return DEG_DIR_LEFTDOWN;
-	if (dir==DIR_RIGHTDOWN) return DEG_DIR_RIGHTDOWN;
-	return -1;
+	switch(dir)
+	{
+		case DIR_UP: return DEG_DIR_UP;
+		case DIR_DOWN: return DEG_DIR_DOWN;
+		case DIR_LEFT: return DEG_DIR_LEFT;
+		case DIR_RIGHT: return DEG_DIR_RIGHT;
+		case DIR_LEFTUP: return DEG_DIR_LEFTUP;
+		case DIR_RIGHTUP: return DEG_DIR_RIGHTUP;
+		case DIR_LEFTDOWN: return DEG_DIR_LEFTDOWN;
+		case DIR_RIGHTDOWN: return DEG_DIR_RIGHTDOWN;
+		default: { LogPrint("Invalid direction %d passed to DirAngle \n",dir); return -1; }
+	}
 }
 
 //Same as Dir4Angle, but return value is measured in radians.
 int Dir4Rad(int dir)
 {
-	if (dir==DIR_UP) return RAD_DIR_UP;
-	if (dir==DIR_DOWN) return RAD_DIR_DOWN;
-	if (dir==DIR_LEFT) return RAD_DIR_LEFT;
-	if (dir==DIR_RIGHT) return RAD_DIR_RIGHT;
-	return -1;
+	switch(dir)
+	{
+		case DIR_UP: return RAD_DIR_UP;
+		case DIR_DOWN: return RAD_DIR_DOWN;
+		case DIR_LEFT: return RAD_DIR_LEFT;
+		case DIR_RIGHT: return RAD_DIR_RIGHT;
+		default: { LogPrint("Invalid direction %d passed to Dir4Rad \n",dir); return -1; }
+	}
 } 
 
 //Same as DirAngle, but return value is measured in radians.
 int DirRad(int dir)
 {
 	//dir &=7;
-	if (dir==DIR_UP) return RAD_DIR_UP;
-	if (dir==DIR_DOWN) return RAD_DIR_DOWN;
-	if (dir==DIR_LEFT) return RAD_DIR_LEFT; //Pi
-	if (dir==DIR_RIGHT) return RAD_DIR_RIGHT;
-	if (dir==DIR_LEFTUP) return RAD_DIR_LEFTUP;
-	if (dir==DIR_RIGHTUP) return RAD_DIR_RIGHTUP;
-	if (dir==DIR_LEFTDOWN) return RAD_DIR_LEFTDOWN;
-	if (dir==DIR_RIGHTDOWN) return RAD_DIR_RIGHTDOWN;
-	return -1;
+	switch(dir)
+	{
+		case DIR_UP: return RAD_DIR_UP;
+		case DIR_DOWN: return RAD_DIR_DOWN;
+		case DIR_LEFT: return RAD_DIR_LEFT; //Pi
+		case DIR_RIGHT: return RAD_DIR_RIGHT;
+		case DIR_LEFTUP: return RAD_DIR_LEFTUP;
+		case DIR_RIGHTUP: return RAD_DIR_RIGHTUP;
+		case DIR_LEFTDOWN: return RAD_DIR_LEFTDOWN;
+		case DIR_RIGHTDOWN: return RAD_DIR_RIGHTDOWN;
+		default: { LogPrint("Invalid direction %d passed to DirRad \n",dir); return -1; }
+	}
 } 
 
 //Returns the distance between two sets of coordinates using Pythagoras' Theorem
@@ -947,8 +992,18 @@ lweapon Duplicate(lweapon a) {
 	b->DeadState = a->DeadState;
 	b->Flash = a->Flash;
 	b->Flip = a->Flip;
-	for (int i = 0; i < 16; ++i)
+	for (int i = 0; i < 32; ++i)
 		b->Misc[i] = a->Misc[i];
+	b->ID = a->ID;
+	b->ScriptTile = a->ScriptTile;
+	b->ScriptFlip = a->ScriptFlip;
+	b->Animation = a->Animation;
+	b->Parent = a->Parent;
+	b->Level = a->Level;
+	b->Script = a->Script;
+	b->Weapon = a->Weapon;
+	b->Defense = a->Defense;
+	for ( int q = 0; q < 8; ++q ) b->InitD[q] = a->InitD[q];
 	return b;
 }
 
@@ -988,8 +1043,18 @@ eweapon Duplicate(eweapon a) {
 	b->DeadState = a->DeadState;
 	b->Flash = a->Flash;
 	b->Flip = a->Flip;
-	for (int i = 0; i < 16; ++i)
+	for (int i = 0; i < 32; ++i)
 		b->Misc[i] = a->Misc[i];
+	b->ID = a->ID;
+	b->ScriptTile = a->ScriptTile;
+	b->ScriptFlip = a->ScriptFlip;
+	b->Animation = a->Animation;
+	b->Parent = a->Parent;
+//	b->Level = a->Level;
+	b->Script = a->Script;
+	//b->Weapon = a->Weapon;
+	//b->Defense = a->Defense;
+	for ( int q = 0; q < 8; ++q ) b->InitD[q] = a->InitD[q];
 	return b;
 }
 
@@ -1101,9 +1166,7 @@ int FirstComboOf(int t, int layer)
 //Truncates x to an integer
 int Floor(float x) 
 {
-	if(x < 0)
-		return (x-.9999)<<0;
-	return x<<0;
+	return ( (x<0) ? ((x-.9999)<<0) : (x<<0) );
 }
 
 //G
@@ -1228,26 +1291,40 @@ int GetLayerComboC(int layer, int pos)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboC";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboC \n",layer);
 		return -1;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboC";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboC \n",layer);
 		return -1;
 	}
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			return Screen->ComboC[pos];
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else return Game->GetComboCSet(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		else
+		{
+			md = Game->LoadMapData(Game->GetCurMap(), Game->GetCurScreen());
+		}
+		return md->ComboC[pos];
 	}
-	
-	return Game->GetComboCSet(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	else
+	{
+		if (!layer) //layer 0
+		{
+			if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				return Screen->ComboC[pos];
+			}
+			else return Game->GetComboCSet(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		}
+		
+		return Game->GetComboCSet(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	}
 }
 
 
@@ -1257,28 +1334,41 @@ int GetLayerComboD(int layer, int pos)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboD";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboD \n",layer);
 		return -1;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboD";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboD \n",layer);
 		return -1;
 	}
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			return Screen->ComboD[pos];
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else return Game->GetComboData(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		else
+		{
+			md = Game->LoadMapData(Game->GetCurMap(), Game->GetCurScreen());
+		}
+		return md->ComboD[pos];
 	}
-	
-	return Game->GetComboData(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	else
+	{
+		if (!layer) //layer 0
+		{
+			if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				return Screen->ComboD[pos];
+			}
+			else return Game->GetComboData(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		}
+		
+		return Game->GetComboData(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	}
 }
-
 
 //A shorthand way to get a combo on the current layer.
 //Layer 0 is the screen itself.
@@ -1286,26 +1376,40 @@ int GetLayerComboF(int layer, int pos)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboF";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboF \n",layer);
 		return -1;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboF";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboF \n",layer);
 		return -1;
 	}
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			return Screen->ComboF[pos];
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else return Game->GetComboFlag(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		else
+		{
+			md = Game->LoadMapData(Game->GetCurMap(), Game->GetCurScreen());
+		}
+		return md->ComboF[pos];
 	}
-	
-	return Game->GetComboFlag(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	else
+	{
+		if (!layer) //layer 0
+		{
+			if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				return Screen->ComboF[pos];
+			}
+			else return Game->GetComboFlag(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		}
+		
+		return Game->GetComboFlag(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	}
 }
 
 //A shorthand way to get a combo on the current layer.
@@ -1314,26 +1418,40 @@ int GetLayerComboI(int layer, int pos)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboI";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboI \n",layer);
 		return -1;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboI";
-		TraceError(err,layer);
+		LogPrint("Invalid layer%d passed to GetLayerComboI \n",layer);
 		return -1;
 	}
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			return Screen->ComboI[pos];
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else return Game->GetComboInherentFlag(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		else
+		{
+			md = Game->LoadMapData(Game->GetCurMap(), Game->GetCurScreen());
+		}
+		return md->ComboI[pos];
 	}
-	
-	return Game->GetComboInherentFlag(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	else
+	{
+		if (!layer) //layer 0
+		{
+			if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				return Screen->ComboI[pos];
+			}
+			else return Game->GetComboInherentFlag(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		}
+		
+		return Game->GetComboInherentFlag(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	}
 }
 
 
@@ -1343,27 +1461,40 @@ int GetLayerComboS(int layer, int pos)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboS";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboS \n",layer);
 		return -1;
 	}
 	if (layer > 6 )
-	{	
-		int err[]="Invalid layer passed to GetLayerComboS";
-		TraceError(err,layer);
+	{
+		LogPrint("Invalid layer %d passed to GetLayerComboS \n",layer);
 		return -1;
 	}
-	
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			return Screen->ComboS[pos];
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else return Game->GetComboSolid(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		else
+		{
+			md = Game->LoadMapData(Game->GetCurMap(), Game->GetCurScreen());
+		}
+		return md->ComboS[pos];
 	}
-	
-	return Game->GetComboSolid(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	else
+	{
+		if (!layer) //layer 0
+		{
+			if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				return Screen->ComboS[pos];
+			}
+			else return Game->GetComboSolid(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		}
+		
+		return Game->GetComboSolid(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	}
 }
 
 
@@ -1373,28 +1504,40 @@ int GetLayerComboT(int layer, int pos)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboT";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboT \n",layer);
 		return -1;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to GetLayerComboT";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to GetLayerComboT \n",layer);
 		return -1;
 	}
-	
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			return Screen->ComboT[pos];
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else return Game->GetComboType(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		else
+		{
+			md = Game->LoadMapData(Game->GetCurMap(), Game->GetCurScreen());
+		}
+		return md->ComboT[pos];
 	}
-	
-	return Game->GetComboType(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
-
+	else
+	{
+		if (!layer) //layer 0
+		{
+			if ( !SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				return Screen->ComboT[pos];
+			}
+			else return Game->GetComboType(Game->GetCurMap(), Game->GetCurScreen(), pos);
+		}
+		
+		return Game->GetComboType(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos);
+	}
 }
 
 //Returns true if Link has the level item 'itm' from level 'level'
@@ -1424,11 +1567,14 @@ bool GetNPCMiscFlag(npc e, int flag)
 }
 
 //Get an NPC's name from an ID
-void GetNPCName(int ID, int string)
+void GetNPCName(int npc_id, int buffer)
 {
-	npc n = Screen->CreateNPC(ID);
-	n->GetName(string);
-	Remove(n);
+	//we need npcdata->GetName()
+	npcdata nd = Game->LoadNPCData(npc_id);
+	nd->GetName(buffer);
+	//npc n = Screen->CreateNPC(ID);
+	//n->GetName(string);
+	//Remove(n);
 }
 
 //Returns the state of bit 'bit' of Screen->D[] register 'd'
@@ -1465,26 +1611,24 @@ int GridY(int y)
 //Returns if Link has the map for a given level.
 int HasBossKey(int level)
 {
-        if(Game->LItems[level]&LI_BOSSKEY) return 1;
-	return 0;
+	return ( ((Game->LItems[level]&LI_BOSSKEY)) ? 1 : 0 );
 }
 
 //Returns if Link has the compass for a given level.
 int HasCompass(int level)
 {
-        if(Game->LItems[level]&LI_COMPASS) return 1;
-	return 0;
+	return ( ((Game->LItems[level]&LI_COMPASS)) ? 1 : 0 );
 }
 
 //Returns if Link has the map for a given level.
 int HasMap(int level)
 {
-        if(Game->LItems[level]&LI_MAP) return 1;
-	return 0;
+	return ( ((Game->LItems[level]&LI_MAP)) ? 1 : 0 );
 }
 
 bool HasKey(int level)
 {
+
 	return Game->LKeys[level]>0 || Game->Counter[CR_KEYS]>0;
 }
 
@@ -1496,8 +1640,7 @@ bool HasKey()
 //Returns if Link has the Triforce piece for a given level.
 int HasTriforce(int level)
 {
-        if(Game->LItems[level]&LI_TRIFORCE) return 1;
-	return 0;
+	return ( ((Game->LItems[level]&LI_TRIFORCE)) ? 1 : 0 );
 }
 
 // Returns the Y coordinate of the bottom edge of the hitbox.
@@ -1552,8 +1695,6 @@ int HitboxLeft(ffc a)
 {
 	return a->X;
 }
-
-
 
 // Returns the X coordinate of the right edge of the hitbox.
 int HitboxRight(eweapon a) 
@@ -1613,18 +1754,30 @@ int HitboxTop(ffc a)
 //Returns the correct offset to be 'dist' pixels away from the front of a sprite facing in the direction 'dir'
 int InFrontX(int dir, int dist) 
 {
-	int x = 0;
-	if(dir == DIR_LEFT) x = -16+dist;
-	else if(dir == DIR_RIGHT) x = 16-dist;
-	return x;
+	//int x = 0;
+	switch(dir)
+	{
+		case DIR_LEFT: return dist-16;
+		case DIR_RIGHT: return 16-dist;
+		default: return 0;
+	}
+	//if(dir == DIR_LEFT) x = -16+dist;
+	//else if(dir == DIR_RIGHT) x = 16-dist;
+	//return x;
 }
 
 int InFrontY(int dir, int dist)
 {
-	int y = 0;
-	if(dir == DIR_UP) y = -16+dist;
-	else if(dir == DIR_DOWN) y = 16-dist;
-	return y;
+	//int y = 0;
+	switch(dir)
+	{
+		case DIR_UP: return dist-16;
+		case DIR_DOWN: return 16-dist;
+		default: return 0;
+	}
+	//if(dir == DIR_UP) y = -16+dist;
+	//else if(dir == DIR_DOWN) y = 16-dist;
+	//return y;
 }
 
 
@@ -1967,6 +2120,13 @@ eweapon NextToNPC(npc n, int id, int dist)
 //Kills all of Link's inputs
 void NoAction()
 {
+	for ( int q = CB_A; q < MAX_NOACTION_INPUT; ++q )
+	{
+		if ( q == CB_MAP && NOACTION_SKIP_MAP ) continue;
+		if ( q == CB_START && NOACTION_SKIP_START ) continue;
+		Input->Button[q] = false;
+	}
+	/*
 	Link->InputUp = false; Link->PressUp = false;
 	Link->InputDown = false; Link->PressDown = false;
 	Link->InputLeft = false; Link->PressLeft = false;
@@ -1979,6 +2139,7 @@ void NoAction()
 	Link->InputEx2 = false; Link->PressEx2 = false;
 	Link->InputEx3 = false; Link->PressEx3 = false;
 	Link->InputEx4 = false; Link->PressEx4 = false;
+	*/
 }
 
 
@@ -2188,7 +2349,7 @@ bool OnSidePlatform(int x, int y, int xOff, int yOff, int h) {
 //Returns the opposite direction to angle 'dir'
 int OppositeDir(int dir) 
 {
-	return Cond(dir < 4, dir^1b, dir^11b);
+	return ( (dir < 4) ? dir^1b : dir^11b );
 }
 
 //P
@@ -2293,9 +2454,7 @@ bool RightOf(lweapon n){ return Link->X > n->X; }
 //Rounds x to the nearest integer
 float Round(float x) 
 {
-	if(x < 0)
-		return (x-.5)<<0;
-	return (x+.5)<<0;
+	return ( (x<0) ? (((x-.5)<<0)) : (((x+.5)<<0)) );
 }
 
 //rotates and scales X about a center point by an amount of degrees
@@ -2423,35 +2582,56 @@ void SetLayerComboC(int layer, int pos, int combo)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboC";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboC \n",layer);
 		return;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboC";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboC \n",layer);
 		return;
 	}
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			Game->SetComboCSet(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
-			return;
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else
+		else //layer 0
 		{
-			Screen->ComboC[pos] = combo;
-			return;
-		}
+			if ( SETLAYERCOMBO_ONLY_USE_MAPDATA )
+			{
+				md->ComboC[pos] = combo;
+				return;
+			}
+			else
+			{
+				Screen->ComboC[pos] = combo;
+				return;
+			}
+		}		
 	}
 	else
 	{
-		Game->SetComboCSet(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		if (!layer) //layer 0
+		{
+			if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				Game->SetComboCSet(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
+				return;
+			}
+			else
+			{
+				Screen->ComboC[pos] = combo;
+				return;
+			}
+		}
+		else
+		{
+			Game->SetComboCSet(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		}
 	}
 }
-
 
 //A shorthand way to set a combo on the current layer.
 //Layer 0 is the screen itself.
@@ -2459,35 +2639,56 @@ void SetLayerComboD(int layer, int pos, int combo)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboD";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboD \n",layer);
 		return;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboD";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboD \n",layer);
 		return;
 	}
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			Game->SetComboData(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
-			return;
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else
+		else //layer 0
 		{
-			Screen->ComboD[pos] = combo;
-			return;
-		}
+			if ( SETLAYERCOMBO_ONLY_USE_MAPDATA )
+			{
+				md->ComboD[pos] = combo;
+				return;
+			}
+			else
+			{
+				Screen->ComboD[pos] = combo;
+				return;
+			}
+		}		
 	}
 	else
 	{
-		Game->SetComboData(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		if (!layer) //layer 0
+		{
+			if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				Game->SetComboData(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
+				return;
+			}
+			else
+			{
+				Screen->ComboD[pos] = combo;
+				return;
+			}
+		}
+		else
+		{
+			Game->SetComboData(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		}
 	}
 }
-
 
 //A shorthand way to set a combo on the current layer.
 //Layer 0 is the screen itself.
@@ -2495,32 +2696,54 @@ void SetLayerComboF(int layer, int pos, int combo)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboF";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboF \n",layer);
 		return;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboF";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboF \n",layer);
 		return;
 	}
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			Game->SetComboFlag(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
-			return;
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else
+		else //layer 0
 		{
-			Screen->ComboF[pos] = combo;
-			return;
-		}
+			if ( SETLAYERCOMBO_ONLY_USE_MAPDATA )
+			{
+				md->ComboF[pos] = combo;
+				return;
+			}
+			else
+			{
+				Screen->ComboF[pos] = combo;
+				return;
+			}
+		}		
 	}
 	else
 	{
-		Game->SetComboFlag(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		if (!layer) //layer 0
+		{
+			if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				Game->SetComboFlag(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
+				return;
+			}
+			else
+			{
+				Screen->ComboF[pos] = combo;
+				return;
+			}
+		}
+		else
+		{
+			Game->SetComboFlag(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		}
 	}
 }
 
@@ -2530,32 +2753,54 @@ void SetLayerComboI(int layer, int pos, int combo)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboI";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboI \n",layer);
 		return;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboI";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboI \n",layer);
 		return;
 	}
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			Game->SetComboInherentFlag(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
-			return;
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else
+		else //layer 0
 		{
-			Screen->ComboI[pos] = combo;
-			return;
-		}
+			if ( SETLAYERCOMBO_ONLY_USE_MAPDATA )
+			{
+				md->ComboI[pos] = combo;
+				return;
+			}
+			else
+			{
+				Screen->ComboI[pos] = combo;
+				return;
+			}
+		}		
 	}
 	else
 	{
-		Game->SetComboInherentFlag(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		if (!layer) //layer 0
+		{
+			if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				Game->SetComboInherentFlag(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
+				return;
+			}
+			else
+			{
+				Screen->ComboI[pos] = combo;
+				return;
+			}
+		}
+		else
+		{
+			Game->SetComboInherentFlag(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		}
 	}
 }
 
@@ -2566,33 +2811,54 @@ void SetLayerComboS(int layer, int pos, int combo)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboS";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboS \n",layer);
 		return;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboS";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboS \n",layer);
 		return;
 	}
-	
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			Game->SetComboSolid(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
-			return;
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else
+		else //layer 0
 		{
-			Screen->ComboS[pos] = combo;
-			return;
-		}
+			if ( SETLAYERCOMBO_ONLY_USE_MAPDATA )
+			{
+				md->ComboS[pos] = combo;
+				return;
+			}
+			else
+			{
+				Screen->ComboS[pos] = combo;
+				return;
+			}
+		}		
 	}
 	else
 	{
-		Game->SetComboSolid(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		if (!layer) //layer 0
+		{
+			if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				Game->SetComboSolid(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
+				return;
+			}
+			else
+			{
+				Screen->ComboS[pos] = combo;
+				return;
+			}
+		}
+		else
+		{
+			Game->SetComboSolid(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		}
 	}
 }
 
@@ -2603,35 +2869,55 @@ void SetLayerComboT(int layer, int pos, int combo)
 {
 	if (layer < 0 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboT";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboT \n",layer);
 		return;
 	}
 	if (layer > 6 )
 	{
-		int err[]="Invalid layer passed to SetLayerComboT";
-		TraceError(err,layer);
+		LogPrint("Invalid layer %d passed to SetLayerComboT \n",layer);
 		return;
 	}
-	
-	if (!layer) //layer 0
+	if ( SETLAYERCOMBO_USE_MAPDATA )
 	{
-		if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+		mapdata md;
+		if ( layer ) 
 		{
-			Game->SetComboType(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
-			return;
+			md = Game->LoadMapData(Screen->LayerMap(layer),Screen->LayerScreen(layer));
 		}
-		else
+		else //layer 0
 		{
-			Screen->ComboT[pos] = combo;
-			return;
-		}
+			if ( SETLAYERCOMBO_ONLY_USE_MAPDATA )
+			{
+				md->ComboT[pos] = combo;
+				return;
+			}
+			else
+			{
+				Screen->ComboT[pos] = combo;
+				return;
+			}
+		}		
 	}
 	else
 	{
-		Game->SetComboType(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		if (!layer) //layer 0
+		{
+			if ( SETLAYERCOMBO_ALWAYS_USE_SETCOMBO )
+			{
+				Game->SetComboType(Game->GetCurMap(), Game->GetCurScreen(), pos, combo);
+				return;
+			}
+			else
+			{
+				Screen->ComboT[pos] = combo;
+				return;
+			}
+		}
+		else
+		{
+			Game->SetComboType(Screen->LayerMap(layer), Screen->LayerScreen(layer), pos, combo);
+		}
 	}
-	
 }
 
 //Gives or removes a level item from Link's inventory
@@ -2684,15 +2970,18 @@ float SmoothStep(float p1, float p2, float t)
 //Converts directions to go round in a circle rather than U, D, L, R
 int SpinDir(int dir) 
 {
-	if(dir==0)
-		return DIR_UP;
-	else if(dir==1)
-		return DIR_RIGHT;
-	else if(dir==2)
-		return DIR_DOWN;
-	else if(dir==3)
-		return DIR_LEFT;
-	return -1;
+	switch(dir)
+	{
+		case DIR_UP:
+			return DIR_UP;
+		case DIR_DOWN:
+			return DIR_RIGHT;
+		case DIR_LEFT: 
+			return DIR_DOWN;
+		case DIR_RIGHT:
+			return DIR_LEFT;
+		default: return -1;
+	}
 }
 
 //Check for collisions of two squares given upper-left coordinates and a side length for each.
@@ -2808,22 +3097,25 @@ void WaitNoAction(int frames)
 //Turns a WPN_ constant to an EW_ constant
 int WeaponTypeToID(int wpnt)
 {
-	if(wpnt == WPN_ENEMYFLAME) 		return EW_FIRE;
-	else if(wpnt == WPN_ENEMYWIND)		return EW_WIND;
-	else if(wpnt == WPN_ENEMYFIREBALL)	return EW_FIREBALL;
-	else if(wpnt == WPN_ENEMYARROW)		return EW_ARROW;
-	else if(wpnt == WPN_ENEMYBRANG)		return EW_BRANG;
-	else if(wpnt == WPN_ENEMYSWORD)		return EW_BEAM;
-	else if(wpnt == WPN_ENEMYROCK)		return EW_ROCK;
-	else if(wpnt == WPN_ENEMYMAGIC)		return EW_MAGIC;
-	else if(wpnt == WPN_ENEMYBOMB)		return EW_BOMBBLAST; //flipped bomb and lit bomb in older versions of this file. -Z ( 12th February, 2019 )
-	else if(wpnt == WPN_ENEMYSBOMB)		return EW_SBOMB;
-	else if(wpnt == WPN_ENEMYLITBOMB)	return EW_BOMB;
-	else if(wpnt == WPN_ENEMYLITSBOMB)	return EW_SBOMBBLAST;
-	else if(wpnt == WPN_ENEMYFIRETRAIL)	return EW_FIRETRAIL;
-	else if(wpnt == WPN_ENEMYFLAME2)	return EW_FIRE2;
-	else if(wpnt == WPN_ENEMYFIREBALL2)	return EW_FIREBALL2;
-	return -1;
+	switch(wpnt)
+	{
+		case WPN_ENEMYFLAME: 		return EW_FIRE;
+		case WPN_ENEMYWIND:		return EW_WIND;
+		case WPN_ENEMYFIREBALL:		return EW_FIREBALL;
+		case WPN_ENEMYARROW:		return EW_ARROW;
+		case WPN_ENEMYBRANG:		return EW_BRANG;
+		case WPN_ENEMYSWORD:		return EW_BEAM;
+		case WPN_ENEMYROCK:		return EW_ROCK;
+		case WPN_ENEMYMAGIC:		return EW_MAGIC;
+		case WPN_ENEMYBOMB:		return EW_BOMBBLAST; //flipped bomb and lit bomb in older versions of this file. -Z ( 12th February, 2019 )
+		case WPN_ENEMYSBOMB:		return EW_SBOMB;
+		case WPN_ENEMYLITBOMB:		return EW_BOMB;
+		case WPN_ENEMYLITSBOMB:		return EW_SBOMBBLAST;
+		case WPN_ENEMYFIRETRAIL:	return EW_FIRETRAIL;
+		case WPN_ENEMYFLAME2:		return EW_FIRE2;
+		case WPN_ENEMYFIREBALL2:	return EW_FIREBALL2;
+		default: { LogPrint("No valid match for wpnt %d provided to WeaponTypeToID \n", wpnt); return -1; }
+	}
 }
 
 // Wraps radian value towards the range of -PI,PI.
