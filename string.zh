@@ -2,6 +2,5 @@
 //05-SEPT-2015
 //ZScript string handling functions, akin to those found in C
 
-
-import "std_zh/string_constants.zh"
-import "std_zh/string_functions.zh"
+//These are now in std_zh/string_functions.zh and std_zh/string_constants.zh
+//and are loaded by default in std.zh
