@@ -1,5 +1,5 @@
 //std_functions.zh
-//1st July, 2019 for ZC 2.55.0 Alpha 26
+//16st September, 2019 for ZC 2.55.0 Alpha 31
 
 //A
 
@@ -3141,9 +3141,9 @@ int WeaponTypeToID(int wpnt)
 		case WPN_ENEMYROCK:		return EW_ROCK;
 		case WPN_ENEMYMAGIC:		return EW_MAGIC;
 		case WPN_ENEMYBOMB:		return EW_BOMBBLAST; //flipped bomb and lit bomb in older versions of this file. -Z ( 12th February, 2019 )
-		case WPN_ENEMYSBOMB:		return EW_SBOMB;
+		case WPN_ENEMYSBOMB:		return EW_SBOMBBLAST;
 		case WPN_ENEMYLITBOMB:		return EW_BOMB;
-		case WPN_ENEMYLITSBOMB:		return EW_SBOMBBLAST;
+		case WPN_ENEMYLITSBOMB:		return EW_SBOMB;
 		case WPN_ENEMYFIRETRAIL:	return EW_FIRETRAIL;
 		case WPN_ENEMYFLAME2:		return EW_FIRE2;
 		case WPN_ENEMYFIREBALL2:	return EW_FIREBALL2;
@@ -3172,3 +3172,18 @@ float WrapDegrees( float degrees )
 //Y
 
 //Z
+
+//New functions are all going into a namespace.
+//Later, we will likely migrate all std functions to here:
+//Should namespace scope functions be uppercase?
+//They aren't global, and lowercase seems logical?!
+namespace std
+{
+	////clkptr is an array, sized at least [1], frames is the duration on/off, so, 10 would be on for ten frames, then off for ten frames
+	bool blink(int clkptr, int frames)
+	{
+	    const int clkIindx = 0;
+	    clkptr[clkIindx] = (clkptr[clkIindx]+1)%(frames<<1);
+	    return( clkptr[clkIindx]&frames );
+	}
+}
