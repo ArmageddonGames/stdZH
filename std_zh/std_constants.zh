@@ -1,8 +1,6 @@
 // std_constants.zh
-// 18th July, 2019 for ZC 2.55 Alpha 28
+// 5th November, 2019 for ZC 2.55 Alpha 32
 // Contains required constants for std.zh and ZScript functions.
-
-typedef const int define;
 
 const int ERR_RETURN 			= -1; 
 
@@ -72,6 +70,9 @@ const int MAX_GLOBAL_VARIABLES		= 255;
 const int MAX_VARIABLES			= 255; //Vars in operation at any one time.
 const int MAX_BITSPERVARIABLE		= 18;
 
+const int MIN_ITEMDATA			= 0;
+const int MAX_ITEMDATA			= 255;
+
 const int MAX_ARRAY_POINTERS	 	= 4095; //Arrays in operation. 
 const int MAX_TILES 			= 65519;
 const int MAX_COMBOS			= 65279;
@@ -94,6 +95,14 @@ const int MAX_FFC_W 			= 4; //Four tiles wide
 const int MAX_FFC_H 			= 4; //Four tiles high
 const int MAX_FFC_EFFECT_W		= 64; //Sixty-four pixels wide.
 const int MAX_FFC_EFFECT_H		= 64; //Sixty four pixels high. 
+
+//Default array sizes
+const int INIT_D_SIZE			= 8;
+const int INIT_A_SIZE			= 2;
+const int MISC_SIZE			= 32;
+const int NPC_ATTRIBUTES_SIZE		= 32;
+const int ITEM_ATTRIBUTES_SIZE		= 10;
+const int GAMEMISC_SIZE 		= 32;
 
 /////////////////////
 /// Screen Dimensions
@@ -1714,6 +1723,26 @@ const int SEF_SPAWN				= 0;
 const int SEF_LIST1				= 1; //left-hand list
 const int SEF_LIST2				= 2; //right-hand list
 
+//Screen Enemy Flags: Spawn
+const int SEFSP_ZORA				= 0; //0x0001
+const int SEFSP_CORNERTRAP			= 1; //0x0002
+const int SEFSP_MIDDLETRAP			= 2; //0x0004
+const int SEFSP_ROCK				= 3; //0x0008
+const int SEFSP_SHOOTER				= 4; //0x0010
+
+//Screen Enemy Flags: List1
+const int SEFL1_RINGLEADER			= 0; //0x0001
+const int SEFL1_CARRYITEM			= 1; //0x0002
+const int SEFL1_INVIS				= 2; //0x0004
+const int SEFL1_BOSS				= 3; //0x0008
+const int SEFL1_TRAPS_IGNORE_SOLID	= 4; //0x0010
+
+//Screen Enemy Flags: List2
+const int SEFL2_ALWAYSRET			= 0; //0x0001
+const int SEFL2_ENEMIES_ITEM		= 1; //0x0002
+const int SEFL2_ENEMEIS_SECRET		= 2; //0x0004
+const int SEFL2_ENEMIES_SECRET_PERM	= 3; //0x0008
+
 //Room types (Screen => Room Type)
 //Use with Screen->RoomType
 const int RT_DOORREPAIR         = 5;
@@ -1990,7 +2019,7 @@ const int CF_SCRIPT_DIG 	= 144;  //Dig Spot (Scripted)",
 const int CF_SCRIPT_DIG_NEXT  	= 145;  //Dig Spot, Next (Scripted)",
 const int CF_SCRIPT_DIG_ITEM  	= 146;  //Dig Spot, Special Item (Scripted)",
 const int CF_SCRIPT_POT_SLASH  	= 147; // Pot, Slashable (Scripted)",
-const int CF_SCRIPT_POT_SLASH_LIFT = 148; // Pot, Liftable (Scripted)",
+const int CF_SCRIPT_POT_LIFT 	= 148; // Pot, Liftable (Scripted)",
 const int CF_SCRIPT_POT_SLASH_OR_LIFT =  149; // Pot, Slash or Lift (Scripted)",
 const int CF_SCRIPT_LIFT_NORMAL = 150; // Rock, Lift Normal (Scripted)",
 const int CF_SCRIPT_LIFT_HEAVY 	= 151; // Rock, Lift Heavy (Scripted)",
@@ -2003,6 +2032,8 @@ const int CF_SCRIPT_DROP_MAP 	= 157; // Drop Map (Scripted)",
 const int CF_SCRIPT_DROP_BOSS_KEY 	= 158; // Drop Boss Key (Scripted)",
 const int CF_SCRIPT_SPAWN_NPC 	= 159; // Spawn NPC (Scripted)",
 const int CF_SCRIPT_SWITCHHOOK 	= 160; // SwitchHook Spot (Scripted)",
+const int CF_SIDEVIEW_LADDER 	= 161; // Sideview Ladder
+const int CF_SIDEVIEW_PLATFORM 	= 161; // Sideview Platform
 
 //chests  to 16, unlocked, locked, boss; small, big. Probably better as combo types?
 
@@ -2389,6 +2420,22 @@ const int VOL_DIGI	= 1;
 const int VOL_MUSIC	= 2;
 const int VOL_SFX	= 3;
 
+//Combo Quadrants used for Combo Solidity and CSet2vMasks
+const int CMB_QUADRANT_UL 	= 0001b;
+const int CMB_QUADRANT_UR 	= 0100b;
+const int CMB_QUADRANT_DL 	= 0010b;
+const int CMB_QUADRANT_DR 	= 1000b;
+
+const int CMB_QUADRANT_UPLEFT 	= 0001b;
+const int CMB_QUADRANT_UPRIGHT 	= 0100b;
+const int CMB_QUADRANT_DOWNLEFT = 0010b;
+const int CMB_QUADRANT_DOWNRIGHT = 1000b;
+
+const int CMB_QUADRANT_LEFTUP 	= 0001b;
+const int CMB_QUADRANT_RIGHTUP 	= 0100b;
+const int CMB_QUADRANT_LEFTDOWN = 0010b;
+const int CMB_QUADRANT_RIGHTDOWN = 1000b;
+
 //Input->
 /* Defined earlier.
 const int CB_UP		= 0;
@@ -2504,7 +2551,7 @@ const int WT_IWARPZAP			= 7;
 const int WT_IWARPWAVE		  	= 8;
 const int WT_NOWARP			= 9;
 
-//Warp Eddects for Link->WarpEx
+//Warp Effects for Link->WarpEx
 const int WARPEFFECT_NONE = 0;
 const int WARPEFFECT_ZAP = 1;
 const int WARPEFFECT_WAVE = 2;
@@ -2519,6 +2566,19 @@ const int WARP_FLAG_SETENTRANCESCREEN 	= 0x08;
 const int WARP_FLAG_SETENTRANCEDMAP 	= 0x10;
 const int WARP_FLAG_SETCONTINUESCREEN 	= 0x20;
 const int WARP_FLAG_SETCONTINUEDMAP 	= 0x40;
+
+//Manual Sprite Carryover
+const int WARP_FLAG_DONTCLEARSPRITES 	= 0x100;
+const int WARP_FLAG_CLEARITEMS 		= 0x200;
+const int WARP_FLAG_CLEARGUYS 		= 0x400;
+const int WARP_FLAG_CLEARLWEAPONS 	= 0x800;
+const int WARP_FLAG_CLEAREWEAPONS 	= 0x1000;
+const int WARP_FLAG_CLEARHOOKSHOT 	= 0x2000;
+const int WARP_FLAG_CLEARDECORATIONS 	= 0x4000;
+const int WARP_FLAG_CLEARPARTICLES 	= 0x8000;
+
+//Prevent Stepping forward in dungeon screens (experimental)
+const int WARP_FLAG_NOSTEPFORWARD	= 0x10000;
 
 //Error codes for `#ignore error`
 enum
@@ -2596,10 +2656,9 @@ enum
 };
 
 
-enum ffruletype 
+enum ffruletype
 {
-	
-	// 1st byte out of 20
+    // 1st byte out of 20
     qr_SOLIDBLK, qr_NOTMPNORET, qr_ALWAYSRET, qr_MEANTRAPS,
     qr_BSZELDA, qr_FADE, qr_FADECS5, qr_FASTDNGN,
     // 2
@@ -2667,13 +2726,32 @@ enum ffruletype
     qr_OLDMIRRORCOMBOS,
     qr_BROKENBOOKCOST,
     qr_OLDSIDEVIEWSPIKES,
+    //21
 	qr_OLDINFMAGIC/* Compatibility */, //Infinite magic prevents items from draining rupees
 	qr_NEVERDISABLEAMMOONSUBSCREEN, qr_ITEMSCRIPTSKEEPRUNNING,
-	qr_SCRIPTSRUNINLINKSTEPFORWARD, /*qr_SCRIPTDRAWSINCANCELWARP,*/ qr_SCRIPTDRAWSWHENSCROLLING, qr_SCRIPTDRAWSINWARPS,
+	qr_SCRIPTSRUNINLINKSTEPFORWARD, /*qr_SCRIPTDRAWSINCANCELWARP,*/ qr_FIXSCRIPTSDURINGSCROLLING, qr_SCRIPTDRAWSINWARPS,
 	qr_DYINGENEMYESDONTHURTLINK, //t.b.a
-	qr_SIDEVIEWTRIFORCECELLAR, qr_OUTOFBOUNDSENEMIES,
+	qr_SIDEVIEWTRIFORCECELLAR,
+	//22
+	qr_OUTOFBOUNDSENEMIES,
+	qr_EPILEPSY,
+	qr_SCRIPT_FRIENDLY_ENEMY_TYPES,
+	qr_SMARTDROPS,
+	qr_NO_L_R_BUTTON_INVENTORY_SWAP,
+	qr_USE_EX1_EX2_INVENTORYSWAP,
+	qr_NOFASTMODE,
+	qr_OLD_F6,
+	//23
+	qr_BROKEN_ASKIP_Y_FRAMES /* Compatibility */, qr_ENEMY_BROKEN_TOP_HALF_SOLIDITY /* Compatibility */, qr_SIDEVIEWLADDER_FACEUP, qr_ITEMS_IGNORE_SIDEVIEW_PLATFORMS,
+	qr_DOWN_FALL_THROUGH_SIDEVIEW_PLATFORMS, qr_SIDEVIEW_FALLTHROUGH_USES_DRUNK, qr_DOWN_DOESNT_GRAB_LADDERS, qr_DOWNJUMP_FALL_THROUGH_SIDEVIEW_PLATFORMS,
+	//24
+	qr_OLD_SIDEVIEW_CEILING_COLLISON /* Compatibility */, qr_0AFRAME_ITEMS_IGNORE_AFRAME_CHANGES /* Compatibility */, qr_OLD_ENEMY_KNOCKBACK_COLLISION /* Compatibility */,
+	qr_FADEBLACKWIPE, qr_PASSIVE_SUBSCRIPT_RUNS_DURING_ACTIVE_SUBSCRIPT, qr_DMAP_ACTIVE_RUNS_DURING_ACTIVE_SUBSCRIPT,
+	qr_ANIMATECUSTOMWEAPONS,
+	qr_WEAPONSMOVEOFFSCREEN, qr_CHECKSCRIPTWEAPONOFFSCREENCLIP,
 	
 	//ZScript Parser //room for 20 of these
+	//80
 	qr_PARSER_250DIVISION = 80*8, //2.50 integer division bug emulation
 	qr_PARSER_NO_LOGGING, //Default off. If on, `Trace()` does not do anything.
 	qr_PARSER_SHORT_CIRCUIT, //Default off.
@@ -2682,14 +2760,18 @@ enum ffruletype
 	qr_PARSER_TRUE_INT_SIZE, //Default on
 	qr_WPNANIMFIX, /* Not Implemented : This was in 2.50.2, but never used. */ 
 	qr_NOSCRIPTSDURINGSCROLL, /* Not Implemented : This was in 2.50.2, but never used. */
+	//81
 	qr_OLDSPRITEDRAWS,
 	qr_WEAPONSHADOWS, qr_ITEMSHADOWS, qr_OLDEWPNPARENT, qr_OLDCREATEBITMAP_ARGS,
 	qr_OLDQUESTMISC, 
 	qr_PARSER_FORCE_INLINE,
 	qr_CLEARINITDONSCRIPTCHANGE,
+	//82
+	qr_NOFFCWAITDRAW, qr_NOITEMWAITDRAW, qr_TRACESCRIPTIDS, qr_FIXDRUNKINPUTS,
+	qr_32BIT_BINARY, qr_ALWAYS_DEALLOCATE_ARRAYS, qr_ONDEATH_RUNS_AFTER_DEATH_ANIM, qr_DISALLOW_SETTING_RAFTING,
+	//83
+	qr_WEAPONS_EXTRA_FRAME, qr_250WRITEEDEFSCRIPT,
     qr_MAX
-	
-	
 };
 
 //Flags for SaveSRAM() and LoadSRAM()
@@ -2764,3 +2846,38 @@ enum {
 	susptLENS, susptHOOKSHOT, susptMOVINGBLOCKS, susptMAGICCAST, susptSCREENDRAW,
 	//35
 	susptLAST };
+
+enum openingWipeShape
+{
+	WIPE_CIRCLE, WIPE_OVAL, WIPE_TRIANGLE,
+	WIPE_SMAS, WIPE_FADEBLACK, WIPE_MAX
+};
+
+define NOCARRY_B_SECRET =			0x2000;
+define NOCARRY_B_ITEM =				0x0010;
+define NOCARRY_B_SPECIALITEM =		0x0020;
+define NOCARRY_B_LOCKBLOCK =		0x0100;
+define NOCARRY_B_BOSSLOCKBLOCK =	0x0200;
+define NOCARRY_B_CHEST =			0x0400;
+define NOCARRY_B_LOCKEDCHEST =		0x0800;
+define NOCARRY_B_BOSSCHEST =		0x1000;
+
+define NORESET_B_SECRET =			0x2000;
+define NORESET_B_ITEM =				0x0010;
+define NORESET_B_SPECIALITEM =		0x0020;
+define NORESET_B_LOCKBLOCK =		0x0100;
+define NORESET_B_BOSSLOCKBLOCK =	0x0200;
+define NORESET_B_CHEST =			0x0400;
+define NORESET_B_LOCKEDCHEST =		0x0800;
+define NORESET_B_BOSSCHEST =		0x1000;
+define NORESET_B_DOOR_B_UP =		0x0001;
+define NORESET_B_DOOR_B_DOWN =		0x0002;
+define NORESET_B_DOOR_B_LEFT =		0x0004;
+define NORESET_B_DOOR_B_RIGHT =		0x0008;
+
+enum //Indexes for Game->Gravity[]
+{
+	GR_STRENGTH,
+	GR_TERMINALV,
+	GR_SPRLAYER
+};
