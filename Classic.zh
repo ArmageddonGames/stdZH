@@ -1,9 +1,50 @@
 //Classic.zh
 
+//Changes
+//1.00
+//1.01
+//1.02
+//1.03
+//1.04
+//1.05
+//1.06
+	//Added Z2 Lantern
+	//Added Version and Time/Data Information
+//1.07
+	//Added the Z2 Lantern Collect Script
+	//Attach it to any cangle (or any item) to give the passive 
+	//Z2v Lantern effect to that item.
+	
+//1.08  //Added Eagle Dungeon Scripts from 1st.qst
+//1.09  //Added screen change tracking and compass beep
+//1.10  //Added ffc script ScreenGuyMusic and fuction: bool __classic_zh_ScreenGuyAlive()
+//1.11  //Added arg for BossExplode ffc for enemy ID override as D7
 import "ffcscript.zh"
 import "stdExtra.zh"
 import "ghost.zh"
 import "tango.zh"
+
+//Internal Data Array and its indices.
+int __classic_zc_internal[128];
+const int __classic_zh_WENTINTO_L1 	= 0;
+const int __classic_zh_EXITEDFROM_L1 	= 1;
+const int __classic_zh_SCREENCHANGED 	= 2;
+const int __classic_zh_LASTDMAP 	= 3;
+const int __classic_zh_LASTMAP 		= 4;
+const int __classic_zh_LASTSCR 		= 5;
+
+//Version Information; time is in GMT
+const float __classic_zh_VERSION 	= 1.11;
+const int __classic_zh_YEAR 		= 2019;
+const int __classic_zh_MONTH 		= 10;
+const int __classic_zh_DAY 		= 8;
+const int __classic_zh_HOUR 		= 0;
+const int __classic_zh_MINUTE 		= 26;
+
+
+const int __classic_zh_ITEM_Z2LANTERN 			= 149;
+const int __classic_zh_MAX_ITEMS 			= 512;
+
 
 const int I_HALFMAGIC 					= 144;
 const int I_LEARNSLASH 					= 143;
@@ -11,6 +52,7 @@ const int I_LEARNSLASH 					= 143;
 const int I_MAGICBOSSKEY 				= 146;
 const int I_MAGICMAP 					= 147;
 const int I_MAGICCOMPASS 				= 148;
+const int I_AUTOLANTERN 				= 149;
 
 
 const int NPC_DAIRA1 					= 177;
@@ -35,6 +77,41 @@ const int _classic_zh__REG_BOSS_DROPPED_TRIFORCE 	= 4;
 
 const int CMB_INVISIBLE 				= 1;
 
+//Z1 Level 1 Door Glitch
+ffc script EagleBugInside
+{
+	void run()
+	{
+		__classic_zc_internal[__classic_zh_WENTINTO_L1]=1;
+		if(__classic_zc_internal[__classic_zh_EXITEDFROM_L1])
+		{
+			Screen->Door[DIR_UP]=D_UNLOCKED;
+			Screen->State[ST_DOORUP]=true;
+			Game->SetScreenState(2, 0x63, ST_DOORDOWN, true);
+		}
+	}
+}
+
+ffc script EagleBugOutside
+{
+	void run()
+	{
+		if(__classic_zc_internal[__classic_zh_WENTINTO_L1])
+		__classic_zc_internal[__classic_zh_EXITEDFROM_L1]=1;
+	}
+}
+
+ffc script EagleBugEast
+{
+	void run()
+	{
+		__classic_zc_internal[__classic_zh_WENTINTO_L1]=0;
+		__classic_zc_internal[__classic_zh_EXITEDFROM_L1]=0;
+	}
+}
+
+
+//New Items
 item script HalfMagic
 {
 	void run()
@@ -99,7 +176,7 @@ ffc script BossMusic
 
 ffc script BossExplode
 {
-	void run(int reg, int spr, int dur, int sfx, int delay, int rmin, int rmax)
+	void run(int reg, int spr, int dur, int sfx, int delay, int rmin, int rmax, int enemy_override)
 	{
 		this->Data = CMB_INVISIBLE;
 		int type;
@@ -114,7 +191,7 @@ ffc script BossExplode
 		for ( int q = Screen->NumNPCs(); q > 0; --q )
 		{
 			npc n = Screen->LoadNPC(q);
-			if ( _classic_zh__isBoss(n) ) 
+			if ( _classic_zh__isBoss(n) || n->ID == enemy_override ) 
 			{
 				boss = n; 
 				width = n->TileWidth;
@@ -356,23 +433,39 @@ ffc script PermBlockShutters
 	}
 }
 
+void __classic_zh_do_z2_lantern()
+{
+	if ( Link->Item[__classic_zh_ITEM_Z2LANTERN] )
+	{
+		if ( !Screen->Lit ) { Screen->Lit = true; }
+	}
+}
+
 global script Active
 {
-    void run()
-    {
-        StartGhostZH();
-        Tango_Start();
+	void run()
+	{
+		StartGhostZH();
+		Tango_Start();
+		__classic_zh_InitScreenUpdating();
 	    
-        while(true)
-        {
-            UpdateGhostZH1();
-	    Tango_Update1();
-            Waitdraw();
-            UpdateGhostZH2();
-	    Tango_Update2();
-            Waitframe();
-        }
-    }
+		while(true)
+		{
+			UpdateGhostZH1();
+			__classic_zh_UpdateScreenChange1();
+			Tango_Update1();
+			__classic_zh_do_z2_lantern();
+			if ( __classic_zc_internal[__classic_zh_SCREENCHANGED] )
+			{
+				__classic_zh_CompassBeep();
+				__classic_zh_ResetScreenChange();
+			}
+			Waitdraw();
+			UpdateGhostZH2();
+			Tango_Update2();
+			Waitframe();
+		}
+	}
 }
 
 
@@ -643,13 +736,23 @@ ffc script DropHEARTCONTAINER
 	}	
 }
 
+//Package script, giving Z2 Lantern with Candle
+//Attach to any candle/lantern as a collect script, to give
+//out the dummy passive lantern item with it.
+item script collect_Z2_lantern
+{
+	void run()
+	{
+		Link->Item[__classic_zh_ITEM_Z2LANTERN] = true;
+	}
+}
 
 //Collect script for Magic Boss Key--works in a levels
 item script MagicBossKey
 {
 	void run()
 	{
-		for ( int q = 0; q < 512; ++q )
+		for ( int q = 0; q < __classic_zh_MAX_ITEMS; ++q )
 		{
 			Game->LItems[q] |= LI_BOSSKEY;
 		}
@@ -661,7 +764,7 @@ item script MagicMap
 {
 	void run()
 	{
-		for ( int q = 0; q < 512; ++q )
+		for ( int q = 0; q < __classic_zh_MAX_ITEMS; ++q )
 		{
 			Game->LItems[q] |= LI_MAP;
 		}
@@ -673,9 +776,116 @@ item script MagicCompass
 {
 	void run()
 	{
-		for ( int q = 0; q < 512; ++q )
+		for ( int q = 0; q < __classic_zh_MAX_ITEMS; ++q )
 		{
 			Game->LItems[q] |= LI_COMPASS;
 		}
+	}
+}
+
+
+
+//Screen update calls.
+void __classic_zh_InitScreenUpdating()
+{
+	__classic_zc_internal[__classic_zh_SCREENCHANGED] = 0;
+	__classic_zc_internal[__classic_zh_LASTDMAP] = Game->GetCurDMap();
+	__classic_zc_internal[__classic_zh_LASTMAP] = Game->GetCurMap();
+	__classic_zc_internal[__classic_zh_LASTSCR] = Game->GetCurScreen();
+}
+
+void __classic_zh_UpdateScreenChange1()
+{
+	if ( __classic_zc_internal[__classic_zh_LASTSCR] != Game->GetCurScreen() )
+	{
+		__classic_zc_internal[__classic_zh_SCREENCHANGED] = 0;
+		return;
+	}
+	if ( __classic_zc_internal[__classic_zh_LASTDMAP] != Game->GetCurDMap() )
+	{
+		__classic_zc_internal[__classic_zh_SCREENCHANGED] = 0;
+	}
+}
+
+void __classic_zh_UpdateScreenChange2()
+{
+	__classic_zc_internal[__classic_zh_LASTDMAP] = Game->GetCurDMap();
+	__classic_zc_internal[__classic_zh_LASTSCR] = Game->GetCurScreen();
+}
+
+void __classic_zh_ResetScreenChange()
+{
+	if ( __classic_zc_internal[__classic_zh_SCREENCHANGED] )
+	{
+		__classic_zc_internal[__classic_zh_LASTDMAP] = Game->GetCurDMap();
+		__classic_zc_internal[__classic_zh_LASTSCR] = Game->GetCurScreen();
+		__classic_zc_internal[__classic_zh_SCREENCHANGED] = 0;
+	}
+}
+
+void __classic_zh_ClearScreenChange()
+{
+	__classic_zc_internal[__classic_zh_SCREENCHANGED] = 0;
+}
+
+//Compass beep. Uses a soundset to the item editor D1 value on the compass item.
+//D0 sets the screen script flag to toggle to make a sound.
+void __classic_zh_CompassBeep()
+{
+	itemdata beep = Game->LoadItemData(I_COMPASS);
+	if ( ScreenFlag(SF_MISC, beep->InitD[0]+2) )
+	{
+		if ( (Game->LItems[Game->GetCurLevel()]&LI_COMPASS) )
+		{
+			if ( !Screen->State[ST_ITEM] )
+			{
+				if ( !Screen->State[ST_SPECIALITEM] )
+				{
+					if ( !Screen->State[ST_CHEST] )
+					{
+						if ( !Screen->State[ST_LOCKEDCHEST] )
+						{
+							if ( !Screen->State[ST_BOSSCHEST] )
+							{
+								Game->PlaySound(beep->InitD[1]);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+//Returns if there are enemy NPCs alive on the current screen.
+bool __classic_zh_ScreenGuyAlive()
+{
+	bool alive = false; 
+	for ( int q = Screen->NumNPCs(); q > 0; --q )
+	{
+		npc n = Screen->LoadNPC(q); 
+		if ( n->Type == NPCT_GUY )
+		{
+			alive = true;
+		}
+	}
+	return alive;
+}
+
+
+ffc script ScreenGuyMusic
+{
+	void run(int reg, int mid, int trk)
+	{
+		this->Data = CMB_INVISIBLE;
+		if ( Screen->D[reg] >= _classic_zh__REG_BOSS_DEAD ) Quit(); //Don't play victory music if we return to the screen.
+		if ( trk < 1 ) trk = _classic_zh__TRK_BOSS;
+		if ( mid < 1 ) mid = _classic_zh__MIDI_VICTORY;
+		int filenm[]="Classic.nsf";
+		Waitframes(5);
+		Game->PlayEnhancedMusic(filenm,trk);
+		while(__classic_zh_ScreenGuyAlive()) Waitframe();
+		Game->PlayMIDI(Game->DMapMIDI[Game->GetCurDMap()]);	
 	}
 }
