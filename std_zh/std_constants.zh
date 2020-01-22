@@ -1,5 +1,5 @@
-// std_constants.zh for ZC v2.53.0 and later.
-// 1st April, 2019
+// std_constants.zh for ZC v2.53.1 and later.
+// 22nd January, 2020
 // Contains required constants for std.zh and ZScript functions.
 
 const int ERR_RETURN 			= -1; 
@@ -34,8 +34,10 @@ const int MAX_INT 			= 214747;
 const int MIN_INT 			= -214747;
 const int MIN_FLOAT 			= -214747.9999;
 
-const int MAX_COUNTER 			= 32768; //or is this 32767, counting 0?
-const int MIN_COUNTER 			= -32768; //" -32767
+const int MAX_COUNTER 			= 65535; 
+const int MIN_COUNTER 			= 0; 
+const int DCOUNTER_MAX			= 32767; 
+const int DCOUNTER_MIN 			= -32768; 
 
 const int MIN_LWEAPON 			= 1; //Lowest numbered objects.
 const int MIN_EWEAPON 			= 1;
@@ -1491,6 +1493,26 @@ const int SEF_SPAWN				= 0;
 const int SEF_LIST1				= 1; //left-hand list
 const int SEF_LIST2				= 2; //right-hand list
 
+//Screen Enemy Flags: Spawn
+const int SEFSP_ZORA				= 0; //0x0001
+const int SEFSP_CORNERTRAP			= 1; //0x0002
+const int SEFSP_MIDDLETRAP			= 2; //0x0004
+const int SEFSP_ROCK				= 3; //0x0008
+const int SEFSP_SHOOTER				= 4; //0x0010
+
+//Screen Enemy Flags: List1
+const int SEFL1_RINGLEADER			= 0; //0x0001
+const int SEFL1_CARRYITEM			= 1; //0x0002
+const int SEFL1_INVIS				= 2; //0x0004
+const int SEFL1_BOSS				= 3; //0x0008
+const int SEFL1_TRAPS_IGNORE_SOLID	= 4; //0x0010
+
+//Screen Enemy Flags: List2
+const int SEFL2_ALWAYSRET			= 0; //0x0001
+const int SEFL2_ENEMIES_ITEM		= 1; //0x0002
+const int SEFL2_ENEMEIS_SECRET		= 2; //0x0004
+const int SEFL2_ENEMIES_SECRET_PERM	= 3; //0x0008
+
 //Room types (Screen => Room Type)
 //Use with Screen->RoomType
 const int RT_DOORREPAIR         = 5;
@@ -1918,6 +1940,23 @@ const int SIDEWARP_A		= 0;
 const int SIDEWARP_B		= 1;
 const int SIDEWARP_C		= 2;
 const int SIDEWARP_D		= 3;
+
+
+//Combo Quadrants used for Combo Solidity and CSet2vMasks
+const int CMB_QUADRANT_UL 	= 0001b;
+const int CMB_QUADRANT_UR 	= 0100b;
+const int CMB_QUADRANT_DL 	= 0010b;
+const int CMB_QUADRANT_DR 	= 1000b;
+
+const int CMB_QUADRANT_UPLEFT 	= 0001b;
+const int CMB_QUADRANT_UPRIGHT 	= 0100b;
+const int CMB_QUADRANT_DOWNLEFT = 0010b;
+const int CMB_QUADRANT_DOWNRIGHT = 1000b;
+
+const int CMB_QUADRANT_LEFTUP 	= 0001b;
+const int CMB_QUADRANT_RIGHTUP 	= 0100b;
+const int CMB_QUADRANT_LEFTDOWN = 0010b;
+const int CMB_QUADRANT_RIGHTDOWN = 1000b;
 
 //Default Weapon Step Speeds
 //const int STEP_
