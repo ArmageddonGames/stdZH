@@ -1,5 +1,5 @@
 // std_constants.zh
-// 8th February, 2020 for ZC 2.55 Alpha 50
+// 24th March, 2020 for ZC 2.55 Alpha 52
 // Contains required constants for std.zh and ZScript functions.
 
 const int ERR_RETURN 			= -1; 
@@ -2820,3 +2820,25 @@ enum //Indexes for Game->Gravity[]
 	GR_TERMINALV,
 	GR_SPRLAYER
 };
+
+enum //Indexes for Game->Scrolling[]
+{
+	SCROLL_DIR,
+	SCROLL_NX,
+	SCROLL_NY,
+	SCROLL_OX,
+	SCROLL_OY
+};
+
+enum //Indexes for messagedata->Flags
+{
+	MSGFLAG_WRAP,         // If the text wraps around the bounding box
+	MSGFLAG_CONT,         // If the message is the continuation of a previous one
+	MSGFLAG_CENTER,       // Reserved
+	MSGFLAG_RIGHT,        // Reserved
+	MSGFLAG_FULLTILE,     // If the background tile should be treated as the UL of a tile block,
+	                      // instead of the UL of a 2x2 adjustable frame
+	MSGFLAG_TRANS_BG,     // If the background should be translucent
+	MSGFLAG_TRANS_FG     // If the text should be translucent
+};
+
