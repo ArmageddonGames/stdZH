@@ -1,0 +1,179 @@
+namespace std3D
+{
+
+//In these three functions, cx, cy, and cz are each arrays of equal size containing all the points in your 3D shape.
+//I believe the positions are relative to the point 0,0,0 and the function rotates them around this point.
+//To use them, you initialize your object in what you want to be its default orientation, then apply the three functions for the desired yaw, pitch, and roll.
+//Hooray for using functions with math I don't fully understand.
+
+ffc script Test3DCube{
+	void run(){
+		int yaw;
+		int pitch;
+		int roll;
+		while(true){
+			if(Link->InputUp)
+				pitch = WrapDegrees(pitch-1.5);
+			else if(Link->InputDown)
+				pitch = WrapDegrees(pitch+1.5);
+			if(Link->InputLeft)
+				yaw = WrapDegrees(yaw-1.5);
+			else if(Link->InputRight)
+				yaw = WrapDegrees(yaw+1.5);
+			if(Link->InputL)
+				roll = WrapDegrees(roll-1.5);
+			else if(Link->InputR)
+				roll = WrapDegrees(roll+1.5);
+			int tex[6] = {1540, 1541, 1542, 1543, 1544, 1545};
+			DrawCube(2, 32, 32, 16, yaw, pitch, roll, tex, 1, 7);
+			WaitNoAction();
+		}
+	}
+}
+
+void DrawCube(int layer, int x, int y, int scale, int yaw, int pitch, int roll, int tex, int texwidth, int cs){
+	int cx[8];
+	int cy[8];
+	int cz[8];
+	//Initialize all 8 points in the default position
+	for(int i=0; i<4; i++){
+		cx[i] = VectorX3D(scale, -45+90*i, -45);
+		cy[i] = VectorY3D(scale, -45+90*i, -45);
+		cz[i] = scale/2;
+		
+		cx[i+4] = VectorX3D(scale, -45+90*i, 90+45);
+		cy[i+4] = VectorY3D(scale, -45+90*i, 90+45);
+		cz[i+4] = -scale/2;
+	}
+	
+	//Rotate from the default position to the desired rotation
+	RotateX3D(yaw, cx, cy, cz);
+	RotateY3D(pitch, cx, cy, cz);
+	RotateZ3D(roll, cx, cy, cz);
+	
+	//Draw all six faces of the cube
+	DrawCubeFace(layer, x, y, 0, 1, 2, 3, tex[0], texwidth, cs, cx, cy, cz);
+	DrawCubeFace(layer, x, y, 4, 5, 6, 7, tex[1], texwidth, cs, cx, cy, cz);
+	
+	DrawCubeFace(layer, x, y, 1, 2, 4, 7, tex[2], texwidth, cs, cx, cy, cz);
+	DrawCubeFace(layer, x, y, 3, 0, 6, 5, tex[3], texwidth, cs, cx, cy, cz);
+	
+	DrawCubeFace(layer, x, y, 0, 1, 7, 6, tex[4], texwidth, cs, cx, cy, cz);
+	DrawCubeFace(layer, x, y, 2, 3, 5, 4, tex[5], texwidth, cs, cx, cy, cz);
+}
+
+void DrawCubeFace(int layer, int x, int y, int p1, int p2, int p3, int p4, int tex, int texwidth, int cs, int cx, int cy, int cz){
+	//Mask out back sides
+	if(CubeCenterZ(p1, p2, p3, p4, cz)>=0){
+		//Assign points from cube arrays to quad array
+		int pos[12];
+		
+		pos[0] = x+cx[p1];
+		pos[1] = y+cy[p1];
+		pos[2] = cy[p1];
+		
+		pos[3] = x+cx[p2];
+		pos[4] = y+cy[p2];
+		pos[5] = cy[p2];
+		
+		pos[6] = x+cx[p3];
+		pos[7] = y+cy[p3];
+		pos[8] = cy[p3];
+		
+		pos[9] = x+cx[p4];
+		pos[10] = y+cy[p4];
+		pos[11] = cy[p4];
+		
+		//Some more garbage
+		int w = texwidth*16-1;
+		int uv[8] = {0,0,  0,w,  w,w,  w,0};
+		int csets[4] = {cs, cs, cs, cs};
+		int size[2] = {texwidth, texwidth};
+		
+		Screen->Quad3D(6, pos, uv, csets, size, 0, tex, PT_MASKTEXTURE);
+	}		
+}
+
+int CubeCenterZ(int p1, int p2, int p3, int p4, int cz){
+	return (cz[p1]+cz[p2]+cz[p3]+cz[p4])/4;
+}
+
+void RotateX3D(int angle, int cx, int cy, int cz){
+	for(int i=0; i<SizeOfArray(cx); i++){
+		int y = cy[i];
+		int z = cz[i];
+		
+		cy[i] = y * Cos(angle) - z * Sin(angle);
+		cz[i] = z * Cos(angle) + y * Sin(angle);
+	}
+}
+
+void RotateY3D(int angle, int cx, int cy, int cz){
+	for(int i=0; i<SizeOfArray(cx); i++){
+		int x = cx[i];
+		int z = cz[i];
+		
+		cx[i] = x * Cos(angle) - z * Sin(angle);
+		cz[i] = z * Cos(angle) + x * Sin(angle);
+	}
+}
+
+void RotateZ3D(int angle, int cx, int cy, int cz){
+	for(int i=0; i<SizeOfArray(cx); i++){
+		int x = cx[i];
+		int y = cy[i];
+		
+		cx[i] = x * Cos(angle) - y * Sin(angle);
+		cy[i] = y * Cos(angle) + x * Sin(angle);
+	}
+}
+
+int VectorX3D(int distance, int yaw, int pitch){
+	return distance*Sin(pitch)*Cos(yaw);
+}
+
+int VectorY3D(int distance, int yaw, int pitch){
+	return distance*Sin(pitch)*Sin(yaw);
+}
+
+int VectorZ3D(int distance, int yaw, int pitch){
+	return distance*Cos(pitch);
+}
+
+/*
+
+void RotateQuad3D_X(int degrees, int pos) {
+	for(int i=0; i<3; i++){
+		int y = pos[(i*3)+1];
+		int z = pos[(i*3)+2];
+		
+		pos[(i*3)+1] = y * Cos(degrees) - z * Sin(degrees);
+		pos[(i*3)+2] = z * Cos(degrees) + y * Sin(degrees);
+	}
+}
+
+
+void RotateQuad3D_Y(int degrees, int pos){
+	for(int i=0; i<3; i++){
+		int x = pos[i*3];
+		int z = pos[(i*3)+2];
+		
+		pos[i*3] = x * Cos(degrees) - z * Sin(degrees);
+		pos[(i*3)+2] = z * Cos(degrees) + x * Sin(degrees);
+
+
+
+		}
+}
+
+void RotateQuad3D_Z(int degrees, int pos){
+	for(int i=0; i<3; i++){
+		int x = pos[i*3];
+		int y = pos[(i*3)+1];
+		
+		pos[i*3] = x * Cos(degrees) - y * Sin(degrees);
+		pos[(i*3)+1] = y * Cos(degrees) + x * Sin(degrees);
+	}
+}
+*/
+}
