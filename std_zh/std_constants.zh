@@ -1,5 +1,5 @@
 // std_constants.zh
-// 10th July, 2020 for ZC 2.55.0 Alpha 75
+// 16th July, 2020 for ZC 2.55.0 Alpha 75
 // Contains required constants for std.zh and ZScript functions.
 
 const int ERR_RETURN 			= -1; 
@@ -1497,6 +1497,25 @@ const int DS_NORMAL             = 0;
 const int DS_PHANTOM            = 1;
 const int DS_CLOAKED            = 2;
 const int DS_LINK               = 3;
+
+enum ShadowType //For '->DrawString()'
+{
+	SHD_NORMAL, //No Shadow
+	//These draw ONLY a shadow, no actual text
+	SHD_SHADOW,
+	SHD_SHADOWU,
+	SHD_OUTLINE8,
+	SHD_OUTLINEPLUS,
+	SHD_OUTLINEX,
+	//These draw a shadow behind the actual text
+	SHD_SHADOWED,
+	SHD_SHADOWEDU,
+	SHD_OUTLINED8,
+	SHD_OUTLINEDPLUS,
+	SHD_OUTLINEDX,
+	//Max number; not an actual value to use
+	SHD_MAX
+};
 
 // Font types. Use with Screen->DrawCharacter *note -some of these fonts may not represent normal ascii characters,
 //and all of these are completely undocumented. Use at your own peril
