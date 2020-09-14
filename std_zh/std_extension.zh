@@ -1,5 +1,5 @@
 //Extended functions for 2.53.0
-//2nd January, 2020
+//14th September, 2020
 
 //A
 
@@ -3358,7 +3358,7 @@ void TraceArray(int arr)
 	TraceNL();
 	int _spc[2]=" ";
 	int sz = SizeOfArray(arr);
-	for ( int q = 0; q < sz; --q ) 
+	for ( int q = 0; q < sz; ++q ) 
 	{
 		Trace(arr[q]); TraceS(_spc);
 		if ( q % 10 == 0 ) TraceNL();
@@ -3368,7 +3368,8 @@ void TraceArray(int arr)
 void TraceArray(int arr, bool verbose)
 {
 	int sz = SizeOfArray(arr);
-	if ( verbose ) 	{
+	if ( verbose ) 	
+	{
 		int str[]="Tracing array with Pointer: ";
 		TraceNL(); TraceS(str); Trace(arr); TraceNL();
 
@@ -3380,7 +3381,8 @@ void TraceArray(int arr, bool verbose)
 			TraceNL();
 		}
 	}
-	else {
+	else 
+	{
 		TraceNL();
 		int _spc[2]=" ";
 		for ( int q = 0; q < sz; ++q ) 
@@ -3396,7 +3398,7 @@ void TraceArrayB(bool arr, int size)
 {
 	TraceNL();
 	int _spc[2]=" ";
-	for ( int q = 0; q < size; q++ ) 
+	for ( int q = 0; q < size; ++q ) 
 	{
 		TraceB(arr[q]); TraceS(_spc);
 		if ( q % 10 == 0 ) TraceNL();
@@ -3407,14 +3409,15 @@ void TraceArrayB(bool arr, int size)
 //Trace the indices of a Boolean array, allows verbose logging.
 void TraceArrayB(bool arr, int size, bool verbose)
 {
-	if ( verbose ) {
+	if ( verbose ) 
+	{
 		//ZScript has no facility to read a pointer ID of an array with a type of bool, ffc, item, *weapon, or itemdata.
 		//int str[]="Tracing array with Pointer: ";
 		int str[]="Tracing Boolean Array: ";
 		TraceNL(); TraceS(str); TraceNL();
 		
 		int _spc[2]=" ";
-		for ( int q = 0; q < size; q++ ) 
+		for ( int q = 0; q < size; ++q ) 
 		{
 			int str2[]="Index: ";
 			int str3[]="is : ";
@@ -3422,10 +3425,11 @@ void TraceArrayB(bool arr, int size, bool verbose)
 			TraceNL();
 		}
 	}
-	else {
+	else 
+	{
 		TraceNL();
 		int _spc[2]=" ";
-		for ( int q = 0; q < size; q++ ) {
+		for ( int q = 0; q < size; ++q ) {
 			TraceB(arr[q]); TraceS(_spc);
 			if ( q % 10 == 0 ) TraceNL();
 		}	
