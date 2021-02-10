@@ -1,5 +1,5 @@
 // std_constants.zh
-// 3rd February, 2021 for ZC 2.55.0 Alpha 89
+// 10th February, 2021 for ZC 2.55.0 Alpha 89
 // Contains required constants for std.zh and ZScript functions.
 
 const int ERR_RETURN 			= -1; 
@@ -1759,6 +1759,7 @@ const int OP_TRANS              = 64;
 const int OP_OPAQUE             = 128;
 
 // Render Targets. Use with Screen->"*RenderTarget" and Screen->"Bitmap" drawing routines.
+const int RT_CURRENT		= -2; // Used by Blit(). mode7(), and RevBlit() for the current RT as dest.
 const int RT_SCREEN             = -1; // draws to screen
 const int RT_BITMAP0            = 0; // draws to off-screen bitmap 0
 const int RT_BITMAP1            = 1; // draws to off-screen bitmap 1
